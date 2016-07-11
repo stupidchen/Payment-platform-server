@@ -103,14 +103,6 @@ var controller = {
         });
     },
     
-    addTempUser: function (data, callback) {
-        //TODO
-    },
-
-    removeTempUser: function (data, callback) {
-        //TODO
-    },
-
     getUserInfo: function (data, callback) {
         var userId = getUserIdByToken(data.token);
 
