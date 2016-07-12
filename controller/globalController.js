@@ -7,19 +7,21 @@ var errorUtil = require('../util/errorUtil');
 var tokenPool = [];
 
 function getUserIdByToken(token) {
-    if (token) return;
-    return tokenPool.indexOf(token);
+    if (!token) return;
+    return tokenPool[token];
 } 
 
 function addTokenByUserId(userId, token) {
-    tokenPool[userId] = token;
+    tokenPool[token] = userId;
 }
 
 var controller = {
     login: function (data, callback) {
         var userId = data.userId;
         var password = data.password;
-        var msg = {};
+        var msg = {
+            err: null 
+        };
         
         if (!(userId && password)) {
             msg.err = errorUtil.createError(1);
@@ -55,10 +57,12 @@ var controller = {
     
     topup: function (data, callback) {
         var userId = getUserIdByToken(data.token);
-        var msg = {};
+        var msg = {
+            err: null
+        };
         
         if (userId) {
-            db.topUp(data.userId, data.payword, data.amount, function (err) {
+            db.topUp(userId, data.payword, data.amount, function (err) {
                 msg.err = err;
                 callback(msg);
             });
@@ -71,10 +75,12 @@ var controller = {
     
     withdraw: function (data, callback) {
         var userId = getUserIdByToken(data.token);
-        var msg = {};
+        var msg = {
+            err: null
+        };
         
         if (userId) {
-            db.withdraw(data.userId, data.payword, data.amount, function (err) {
+            db.withdraw(userId, data.payword, data.amount, function (err) {
                 msg.err = err;
                 callback(msg);
             });
@@ -87,8 +93,10 @@ var controller = {
 
     register: function (data, callback) {
         var userId = data.userId;
+        var msg = {
+            err: null
+        };
         
-        var msg = {};
         db.ifUserExists(userId, function (exist) {
            if (exist) {
                msg.err = errorUtil.createError(6);
@@ -103,10 +111,12 @@ var controller = {
         });
     },
     
-    getUserInfo: function (data, callback) {
+    getSelfInfo: function (data, callback) {
         var userId = getUserIdByToken(data.token);
+        var msg = {
+            err: null
+        };
 
-        var msg = {};
         if (userId) {
             db.findUser(userId, function (err, result) {
                 msg.err = err;
@@ -119,16 +129,73 @@ var controller = {
             callback(msg);
         }
     },
+        
+    getUserInfo: function (data, callback) {
+        var userId = data.userId;
+        var msg = {
+            err: null,
+            info : {}
+        };
+
+        db.findUser(userId, function (err, result) {
+            msg.err = err;
+            if (result.length > 0) {
+                msg.info.username = result[0].username;
+                callback(msg);
+            }
+            else {
+                msg.err = errorUtil.createError(12);
+                callback(msg);
+            }
+        });
+    },
+
 
     updateUserInfo: function (data, callback) {
         var userId = getUserIdByToken(data.token);
+        var msg = {
+            err: null
+        };
 
-        var msg = {};
         if (userId) {
-            db.updateUser(userId, data.info, function (err, result) {
-                msg.err = err;
-                callback(msg);
-            })
+            if (data.password) {
+                db.verifyLogin(userId, user.password, function (err) {
+                    if (err) {
+                        msg.err = err;
+                        callback(msg);
+                    }
+                    else {
+                        db.updateUser(userId, data.info, function (err) {
+                            msg.err = err;
+                            callback(msg);
+                        })
+                    }
+                });
+            }
+            else {
+                if (data.payword) {
+                    db.verifyPay(userId, user.payword, function (err) {
+                        if (err) {
+                            msg.err = err;
+                            callback(msg);
+                        }
+                        else {
+                            db.updateUser(userId, data.info, function (err) {
+                                msg.err = err;
+                                callback(msg);
+                            })
+                        }
+                    })
+                }
+                else {
+                    db.updateUser(userId, data.info, function (err) {
+                        msg.err = err;
+                        callback(msg);
+                    })
+                }
+            }
+            
+
         }
         else {
             msg.err = errorUtil.createError(5);
@@ -142,11 +209,20 @@ var controller = {
         var amount = data.amount;
         var payword = data.payword;
         
-        var msg = {};
-        db.transfer(fromUserId, toUserId, payword, amount, function (err) {
-            msg.err = err;
+        var msg = {
+            err: null
+        };
+        
+        if (fromUserId) {
+            db.transfer(fromUserId, toUserId, payword, amount, function (err) {
+                msg.err = err;
+                callback(msg);
+            });
+        }
+        else {
+            msg.err = errorUtil.createError(5);
             callback(msg);
-        });
+        }
     }
 };
 

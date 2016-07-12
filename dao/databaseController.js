@@ -17,10 +17,15 @@ var databaseController = {
             [userId, password],
             function (err, result) {
                 if (result[0] && result[0].password === password) {
-                    callback(err);
+                    callback();
                 }
                 else {
-                    callback(errorUtil.createError(1));
+                    if (err) {
+                        callback(errorUtil.createError(2, err));
+                    }
+                    else {
+                        callback(errorUtil.createError(1));
+                    }
                 }
         });
     },
@@ -33,13 +38,18 @@ var databaseController = {
                     callback(err);
                 }
                 else {
-                    callback(errorUtil.createError(7));
+                    if (err) {
+                        callback(errorUtil.createError(2, err));
+                    }
+                    else {
+                        callback(errorUtil.createError(7));
+                    }
                 }
         });  
     },
     
     verifyCash: function (userId, amount, callback) {
-        this.findUser(userId, function (err) {
+        databaseController.findUser(userId, function (err, result) {
             if (err) {
                 callback(err);
             }
@@ -64,8 +74,8 @@ var databaseController = {
         if (info.username) {
             value += ' t.username = ' + info.username + '';
         }
-        if (info.password) {
-            value += ' t.password = ' + info.password + '';
+        if (info.newPassword) {
+            value += ' t.password = ' + info.newPassword + '';
         }
         if (info.sex) {
             value += ' t.sex = ' + info.sex + '';
@@ -76,31 +86,31 @@ var databaseController = {
         if (info.email) {
             value += ' t.email = ' + info.email + '';
         }
-        if (info.payword) {
-            value += ' t.payword = ' + info.payword + '';
+        if (info.newPayword) {
+            value += ' t.payword = ' + info.newPayword + '';
         }
         connection.query('UPDATE users t SET ' + value + ' WHERE userId = ?', userId, callback);
     },
     
     transfer: function (fromUserId, toUserId, payword, amount, callback) {
-        this.verifyPay(fromUserId, payword, function(err) {
+        databaseController.verifyPay(fromUserId, payword, function(err) {
             if (err) {
                 callback(err);
                 return;
             }
-            this.verifyCash(fromUserId, amount, function (err) {
+            databaseController.verifyCash(fromUserId, amount, function (err) {
                 if (err) {
                     callback(err);
                     return;
                 }
-                connection.query('UPDATE users t SET t.money = t.money - ? WHERE fromUserId = ?', [amount, fromUserId], function (err, result) {
+                connection.query('UPDATE users t SET t.money = t.money - ? WHERE userId = ?', [amount, fromUserId], function (err, result) {
                     if (err) {
                         callback(err);
                         return;
                     }
-                    connection.query('UPDATE users t SET t.money = t.money + ? WHERE toUserId = ?', [amount, toUserId], function (err, result) {
+                    connection.query('UPDATE users t SET t.money = t.money + ? WHERE userId = ?', [amount, toUserId], function (err, result) {
                         if (err) {
-                            connection.query('UPDATE users t SET t.money = t.money + ? WHERE fromUserId = ?', [amount, fromUserId], function (err) {
+                            connection.query('UPDATE users t SET t.money = t.money + ? WHERE userId = ?', [amount, fromUserId], function (err) {
                                 if (err) {
                                     callback(errorUtil.createError(10));
                                     return;
@@ -117,7 +127,7 @@ var databaseController = {
     },
     
     topUp: function (userId, payword, amount, callback) {
-        this.verifyPay(userId, payword, function (err) {
+        databaseController.verifyPay(userId, payword, function (err) {
             if (err) {
                 callback(err);
                 return; 
@@ -127,12 +137,12 @@ var databaseController = {
     },
 
     withdraw: function (userId, payword, amount, callback) {
-        this.verifyPay(userId, payword, function (err) {
+        databaseController.verifyPay(userId, payword, function (err) {
             if (err) {
                 callback(err);
                 return;
             }
-            this.verifyCash(userId, amount, function (err) {
+            databaseController.verifyCash(userId, amount, function (err) {
                 if (err) {
                     callback(err);
                     return;
@@ -142,9 +152,10 @@ var databaseController = {
         });
     },
     
+    //TOCHECK
     ifUserExists: function (userId, callback) {
-        this.findUser(userId, function (err) {
-            callback(!(err == null));
+        databaseController.findUser(userId, function (err, result) {
+            callback(result.length > 0);
         });
     },
 

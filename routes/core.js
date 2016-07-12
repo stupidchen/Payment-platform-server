@@ -30,7 +30,7 @@ router.post('/topup', function (req, res, next) {
 
 router.post('/withdraw', function (req, res, next) {
     var body = req.body;
-    controller.topup(body, function (msg) {
+    controller.withdraw(body, function (msg) {
         sendMessageByJson(res, msg);
     });
 });
@@ -45,6 +45,13 @@ router.post('/register', function (req, res, next) {
 router.post('/getUserInfo', function (req, res, next) {
     var body = req.body;
     controller.getUserInfo(body, function (msg) {
+        sendMessageByJson(res, msg);
+    });
+});
+
+router.post('/getSelfInfo', function (req, res, next) {
+    var body = req.body;
+    controller.getSelfInfo(body, function (msg) {
         sendMessageByJson(res, msg);
     });
 });
