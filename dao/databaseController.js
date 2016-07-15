@@ -70,27 +70,38 @@ var databaseController = {
     
     //TOCHECK
     updateUser: function (userId, info, callback) {
-        var value = '';
         if (info.username) {
-            value += ' t.username = ' + info.username + '';
+            connection.query('UPDATE users t SET t.username = ? WHERE userId = ?',
+                [info.username, userId], callback);
+            return;
         }
         if (info.newPassword) {
-            value += ' t.password = ' + info.newPassword + '';
-        }
-        if (info.sex) {
-            value += ' t.sex = ' + info.sex + '';
-        } 
-        if (info.description) {
-            value += ' t.description = ' + info.description + '';
-        }
-        if (info.email) {
-            value += ' t.email = ' + info.email + '';
+            connection.query('UPDATE users t SET t.password = ? WHERE userId = ?',
+                [info.newPassword, userId], callback);
+            return;
         }
         if (info.newPayword) {
-            value += ' t.payword = ' + info.newPayword + '';
+            connection.query('UPDATE users t SET t.payword = ? WHERE userId = ?',
+                [info.newPayword, userId], callback);
+            return;
         }
-        connection.query('UPDATE users t SET ' + value + ' WHERE userId = ?', userId, callback);
+        if (info.sex) {
+            connection.query('UPDATE users t SET t.sex = ? WHERE userId = ?',
+                [info.sex, userId], callback);
+            return;
+        }
+        if (info.description) {
+            connection.query('UPDATE users t SET t.description = ? WHERE userId = ?',
+                [info.description, userId], callback);
+            return;
+        }
+        if (info.email) {
+            connection.query('UPDATE users t SET t.email = ? WHERE userId = ?',
+                [info.email, userId], callback);
+            return;
+        }
     },
+
     
     transfer: function (fromUserId, toUserId, payword, amount, callback) {
         databaseController.verifyPay(fromUserId, payword, function(err) {

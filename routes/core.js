@@ -72,6 +72,9 @@ router.post('/transfer', function (req, res, next) {
 
 function sendMessageByJson(response, message) {
     response.writeHead(200, {'Content-Type': 'application/json'});
+    if (!message.err) {
+        message.err = null;
+    }
     response.end(JSON.stringify(message));
 }
 

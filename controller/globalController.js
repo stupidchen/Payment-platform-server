@@ -1,6 +1,8 @@
 /**
  * Created by mike on 7/7/16.
  */
+"use strict";
+
 var db = require('../dao/databaseController');
 var securityUtil = require('../util/securityUtil');
 var errorUtil = require('../util/errorUtil');
@@ -50,9 +52,14 @@ var controller = {
     logout: function (data, callback) {
         var userId = getUserIdByToken(data.token);
         
+        var msg = {
+            err: null
+        }
         if (userId) {
             tokenPool[userId] = undefined;
         }
+        
+        callback(msg);
     },
     
     topup: function (data, callback) {
@@ -120,7 +127,7 @@ var controller = {
         if (userId) {
             db.findUser(userId, function (err, result) {
                 msg.err = err;
-                msg.info = result;
+                msg.info = result[0];
                 callback(msg);
             })
         }
@@ -156,10 +163,10 @@ var controller = {
         var msg = {
             err: null
         };
-
-        if (userId) {
-            if (data.password) {
-                db.verifyLogin(userId, user.password, function (err) {
+        
+        if (userId && data.info) {
+            if (data.info.password) {
+                db.verifyLogin(userId, data.info.password, function (err) {
                     if (err) {
                         msg.err = err;
                         callback(msg);
@@ -173,8 +180,8 @@ var controller = {
                 });
             }
             else {
-                if (data.payword) {
-                    db.verifyPay(userId, user.payword, function (err) {
+                if (data.info.payword) {
+                    db.verifyPay(userId, data.info.payword, function (err) {
                         if (err) {
                             msg.err = err;
                             callback(msg);
@@ -194,8 +201,6 @@ var controller = {
                     })
                 }
             }
-            
-
         }
         else {
             msg.err = errorUtil.createError(5);
@@ -212,11 +217,19 @@ var controller = {
         var msg = {
             err: null
         };
-        
+       
         if (fromUserId) {
-            db.transfer(fromUserId, toUserId, payword, amount, function (err) {
-                msg.err = err;
-                callback(msg);
+            db.ifUserExists(toUserId, function (exist) {
+                if (exist) {
+                    db.transfer(fromUserId, toUserId, payword, amount, function (err) {
+                        msg.err = err;
+                        callback(msg);
+                    });
+                }
+                else {
+                    msg.err = errorUtil.createError(12);
+                    callback(msg);
+                }
             });
         }
         else {
