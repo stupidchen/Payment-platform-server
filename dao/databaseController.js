@@ -8,7 +8,7 @@ var connection = mysql.createConnection({
     port: '3306',
     user: 'root',
     password: '12345687',
-    database: 'xcccf_pay',
+    database: 'kaZUCzcoDKXB61Qx',
 });
 
 var databaseController = {
@@ -16,38 +16,38 @@ var databaseController = {
         connection.query('SELECT * FROM users WHERE userId = ? AND password = ?',
             [userId, password],
             function (err, result) {
-                if (result[0] && result[0].password === password) {
-                    callback();
+                if (err) {
+                    callback(errorUtil.createError(2, err));
                 }
                 else {
-                    if (err) {
-                        callback(errorUtil.createError(2, err));
+                    if (result[0] && result[0].password === password) {
+                        callback();
                     }
                     else {
                         callback(errorUtil.createError(1));
                     }
                 }
-        });
+            });
     },
-    
+
     verifyPay: function (userId, payword, callback) {
-         connection.query('SELECT * FROM users WHERE userId = ? AND payword = ?',
+        connection.query('SELECT * FROM users WHERE userId = ? AND payword = ?',
             [userId, payword],
             function (err, result) {
-                if (result[0] && result[0].payword === payword) {
-                    callback(err);
+                if (err) {
+                    callback(errorUtil.createError(2, err));
                 }
                 else {
-                    if (err) {
-                        callback(errorUtil.createError(2, err));
+                    if (result[0] && result[0].payword === payword) {
+                        callback();
                     }
                     else {
                         callback(errorUtil.createError(7));
                     }
                 }
-        });  
+            });
     },
-    
+
     verifyCash: function (userId, amount, callback) {
         databaseController.findUser(userId, function (err, result) {
             if (err) {
@@ -166,7 +166,7 @@ var databaseController = {
     //TOCHECK
     ifUserExists: function (userId, callback) {
         databaseController.findUser(userId, function (err, result) {
-            callback(result.length > 0);
+            callback(!result || result.length > 0);
         });
     },
 
