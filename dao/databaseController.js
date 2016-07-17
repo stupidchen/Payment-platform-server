@@ -3,12 +3,14 @@
  */
 var mysql = require('mysql');
 var errorUtil = require('../util/errorUtil');
+var configUtil = require('../util/configUtil');
+
 var connection = mysql.createConnection({
-    host: 'localhost',
-    port: '3306',
-    user: 'root',
-    password: '12345687',
-    database: 'xcccf_pay',
+    host: configUtil.database.host,
+    port: configUtil.database.port,
+    user: configUtil.database.user,
+    password: configUtil.database.password,
+    database: configUtil.database.scheme,
 });
 
 var databaseController = {
