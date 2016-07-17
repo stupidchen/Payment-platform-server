@@ -8,7 +8,7 @@ var connection = mysql.createConnection({
     port: '3306',
     user: 'root',
     password: '12345687',
-    database: 'kaZUCzcoDKXB61Qx',
+    database: 'xcccf_pay',
 });
 
 var databaseController = {
@@ -70,6 +70,11 @@ var databaseController = {
     
     //TOCHECK
     updateUser: function (userId, info, callback) {
+        if (info.avatar) {
+            connection.query('UPDATE users t SET t.avatar = ? WHERE userId = ?',
+                [info.avatar, userId], callback);
+            return;
+        }
         if (info.username) {
             connection.query('UPDATE users t SET t.username = ? WHERE userId = ?',
                 [info.username, userId], callback);
@@ -171,8 +176,8 @@ var databaseController = {
     },
 
     register: function (info, callback) {
-        connection.query('INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-            [info.userId, info.username, info.password, info.sex, info.description, info.email, 0, info.payword], 
+        connection.query('INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+            [info.userId, info.username, info.password, info.sex, info.description, info.email, 0, info.payword, info.avatar], 
             callback);
     }
 };

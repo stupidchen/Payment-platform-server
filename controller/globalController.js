@@ -110,6 +110,7 @@ var controller = {
                callback(msg);
            } 
            else {
+               if (!data.avatar) data.avatar = 0;
                db.register(data, function (err) {
                    msg.err = err;
                    callback(msg);

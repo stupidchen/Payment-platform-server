@@ -1,9 +1,12 @@
-FROM ubuntu
+FROM node
 MAINTAINER Mike Chen 
-RUN sudo apt install nodejs
-RUN sudo apt install npm 
-ADD . /src
-RUN cd /src; npm install
+RUN mkdir -p /usr/src/pay
+WORKDIR /usr/src/pay
+COPY . /usr/src/pay
+
+RUN npm install --production
+
 EXPOSE 3000
-CMD ["node", "/src/bin/www"]
+
+CMD ["node", "/bin/www"]
 
